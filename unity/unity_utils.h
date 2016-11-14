@@ -1,8 +1,21 @@
 #ifndef __UNITY_MONO_UTILS_H
 #define __UNITY_MONO_UTILS_H
 
+#include <jni.h>
+#include <glib.h>
 #include <stdio.h>
 #include <mono/metadata/object.h>
+
+JNIEnv* gEnv;
+char* gPkgNameC;
+char* gFilesDirC;
+GArray* gHotFilesC;
+
+void mono_unity_Java_JNI_Pkg_Init(JNIEnv* env, jobject x, jint count);
+void mono_unity_Java_JNI_Pkg_Set(JNIEnv* env, jobject x, jstring pkgName);
+void mono_unity_Java_JNI_Pkg_SetFilesDir(JNIEnv* env, jobject x, jstring filesDir, jint len);
+void mono_unity_Java_JNI_Pkg_SetFilesDirCstr(JNIEnv* env, jobject x, jcharArray filesDir, jint len);
+void mono_unity_Java_JNI_Pkg_SetHotReloadFiles(JNIEnv* env, jobject x, jbyteArray fname, jint len);
 
 /**
  *	Custom exit function, called instead of system exit()

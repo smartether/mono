@@ -1,3 +1,5 @@
+#include <jni.h>
+#include "../log.h"
 #include "unity_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -197,4 +199,70 @@ gboolean
 unity_mono_method_is_generic (MonoMethod* method)
 {
 	return method->is_generic;
+}
+
+/********** JNI Interface   ************/
+//static JNIEnv* gEnv;
+//static char* gPkgNameC;
+//static char* gFilesDirC;
+
+
+void mono_unity_Java_JNI_Pkg_Set(JNIEnv* env, jobject x, jstring pkgName){
+        gEnv = env;
+        jboolean isCopy = 0;
+        gPkgNameC = (*env)->GetStringUTFChars(env, pkgName, &isCopy);
+	LOGD("$$ set package name as %s", gPkgNameC);
+}
+
+void mono_unity_Java_JNI_Pkg_SetFilesDir(JNIEnv* env, jobject x, jstring filesDir, jint len){
+        jboolean isCopy = 0;
+	gFilesDirC = g_try_malloc(len);
+        char* inStr = (*env)->GetStringUTFChars(env, filesDir, &isCopy);
+	memcpy(gFilesDirC, inStr, len);
+	LOGD("$$ set fileDir as %s", gFilesDirC);
+}
+
+void mono_unity_Java_JNI_Pkg_SetFilesDirCstr(JNIEnv* env, jobject x, jbyteArray filesDir, jint len){
+	jboolean isCopy = 0;
+	gFilesDirC = g_try_malloc(len+1);
+	memset(gFilesDirC, '\0', len+1);
+        char* inStr  = (char*)(*env)->GetByteArrayElements(env, filesDir, &isCopy);
+	memcpy(gFilesDirC, inStr, len);
+	LOGD("$$ set fileDIrCstr as %s", gFilesDirC);
+}
+
+void mono_unity_Java_JNI_Pkg_Init(JNIEnv* env, jobject x, jint count){
+        if(gHotFilesC!=NULL){
+	  g_free(gHotFilesC);
+	  gHotFilesC = NULL;
+//	  gboolean false = 0;
+//	  gboolean true = 1;
+	}
+        gHotFilesC = g_array_new(FALSE,FALSE, sizeof(char*));
+        
+
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved){
+	gHotFilesC = g_array_new(FALSE,FALSE, sizeof(char*));
+        gFilesDirC = g_try_malloc(1);
+        memset(gFilesDirC, '\0', 1);
+
+//        JNIEnv* env;
+//       if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+//    	    return -1;
+//        }
+	return JNI_VERSION_1_6;
+}
+
+void mono_unity_Java_JNI_Pkg_SetHotReloadFiles(JNIEnv* env, jobject x, jbyteArray fname, jint len){
+	if(gHotFilesC!=NULL){
+	  char* name = g_try_malloc(len+1);
+	  memset(name,'\0',len+1);
+	  jboolean isCopy = 0;
+	  char* inStr = (char*)(*env)->GetByteArrayElements(env, fname, &isCopy);
+	  memcpy(name, inStr, len);
+	  g_array_append_val(gHotFilesC, name);
+	  //g_array_append_vals(gHotFilesC, name, len); 
+	}
 }
